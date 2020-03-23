@@ -1,0 +1,55 @@
+---
+title: "Noen enkle simuleringsbetrakninger"
+author: " "
+date: " "
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+La $p$ være reell andel smittede, $k$ antall prøver slått sammen i en pool (bulk) og $\pi(k)$ sannsynligheten for at en pool av $k$ tester gir positivt utslag. Dersom vi for et første overslag ser bort fra redusert sensitivitet (antar altså inntil videre at sensitiviten og spesifisiteten er 100\%) er
+\begin{equation}
+\label{pip}
+\pi(k)=1-(1-p)^k\approx kp
+\end{equation}
+Vi kan estimere $\pi(k)$ ved $N_{+}/N$ der $N_{+}$ er antall prøvepooler som er positive og $N$ er antall prøvepooler. Totalt antall personer man tar prøver fra blir da $n_{pers}=kN$. Fra (\ref{pip}) får vi at 
+$$
+\hat{p}=1-(1-N_+/N)^{1/k}\approx \frac{N_+}{kN}
+$$
+(Tilnærmingen er kun god for små $p$ og da er altså estimatoren tilnærmet forventningsrett.)
+Under er fordelingen til $\hat p$ basert på 100 000 simuleringer vist for ulike $p$ og ulike valg av $k$. Har brukt $n_{pers}=2000$ i alle simuleringer, dvs antall prøvepooler som må testes er da $n_{pers}/k$ (denne er rapportert sammen med bias i tekstutskrift under hvert funksjonskall). 
+
+
+### 
+```{r, fig.height=6}
+# Simulate the distribution of p-hat for given p, k, N
+simp <- function(p,k,N,nsim=10^5){
+  Npos <- rbinom(nsim,N,1-(1-p)^k)
+  phat <- 1-(1-Npos/N)^(1/k)
+  phat
+}
+
+# Simulate the distribution of p-hat for a sequence of k-values
+# Keep number of persons (npers) fixed, thus number of pools  (N) changes
+# as a function of k. 
+simkseq <- function(p,k,npers,nsim=10^5){
+  phatmat <- matrix(nrow=nsim,ncol=length(k))
+  for(i in 1:length(k))
+    phatmat[,i] <- simp(p,k[i],round(npers/k[i]),nsim)
+  boxplot(phatmat, use.cols=T, xaxt="n", ylab="p-hat", xlab="k",
+          main=paste("p =",p,", ", " Antall personer =",npers))
+  axis(side=1, at=1:length(k), labels = k)
+  res <- rbind(k,round(npers/k), round(colMeans(phatmat)-p,digits=5))
+  row.names(res) <- c("k", "N","bias")
+  res
+}
+
+par(mfrow=c(2,2))
+simkseq(p=0.001,k=c(1,5,10,20,30,50,100),npers=2000)
+simkseq(p=0.005,k=c(1,5,10,20,30,50,100),npers=2000)
+simkseq(p=0.01,k=c(1,5,10,20,30,50),npers=2000)
+simkseq(p=0.5,k=c(1,5,10,20,30,50),npers=2000)
+```
