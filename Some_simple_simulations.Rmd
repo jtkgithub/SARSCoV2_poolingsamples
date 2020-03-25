@@ -48,8 +48,54 @@ simkseq <- function(p,k,npers,nsim=10^5){
 }
 
 par(mfrow=c(2,2))
-simkseq(p=0.001,k=c(1,5,10,20,30,50,100),npers=2000)
-simkseq(p=0.005,k=c(1,5,10,20,30,50,100),npers=2000)
-simkseq(p=0.01,k=c(1,5,10,20,30,50),npers=2000)
-simkseq(p=0.5,k=c(1,5,10,20,30,50),npers=2000)
+simkseq(p=0.001,k=c(1,2,4,8,16,32,64),npers=2000)
+simkseq(p=0.005,k=c(1,2,4,8,16,32,64),npers=2000)
+simkseq(p=0.01,k=c(1,2,4,8,16,32),npers=2000)
+simkseq(p=0.5,k=c(1,2,4,8,16,32),npers=2000)
+```
+
+
+
+## Legge til test-sensitivitet
+
+La $s(k)$ være sensitivitet til testen ved pool av $k$ tester. Da blir
+\begin{equation}
+\label{pips}
+\pi(k)=s(k)(1-(1-p)^k)\approx s(k)kp
+\end{equation}
+Ved å invertere og sette inn estimator får vi:
+$$
+\hat{p}=1-(1-N_+/(s(k)N))^{1/k}\approx \frac{N_+}{s(k)kN}
+$$
+
+Ved å legge dette inn i simuleringen og anta en $s(k)=0.98^{1+\log(k)}$ får vi:
+
+
+```{r, fig.height=6}
+# Simulate the distribution of p-hat for given p, k, s, N
+simps <- function(p,k,s,N,nsim=10^5){
+  Npos <- rbinom(nsim,N,s*(1-(1-p)^k))
+  phat <- 1-(1-Npos/(s*N))^(1/k)
+  phat
+}
+
+
+simksseq <- function(p,k,s,npers,nsim=10^5){
+  phatmat <- matrix(nrow=nsim,ncol=length(k))
+  for(i in 1:length(k))
+    phatmat[,i] <- simps(p,k[i],s[i],round(npers/k[i]),nsim)
+  boxplot(phatmat, use.cols=T, xaxt="n", ylab="p-hat", xlab="k",
+          main=paste("p =",p,", ", " Antall personer =",npers))
+  axis(side=1, at=1:length(k), labels = k)
+  res <- rbind(k,s,round(colMeans(phatmat)-p,digits=5))
+  row.names(res) <- c("k", "antatt sensitivitet", "bias")
+  res
+}
+k=c(1,2,4,8,16,32,64)
+par(mfrow=c(2,2))
+simksseq(p=0.001,k=k,s=0.98^(1+log(k)),npers=2000)
+simksseq(p=0.005,k=k,s=0.98^(1+log(k)),npers=2000)
+k=c(1,2,4,8,16,32)
+simksseq(p=0.01,k=k,s=0.98^(1+log(k)),npers=2000)
+simksseq(p=0.5,k=k,s=0.98^(1+log(k)),npers=2000)
 ```
