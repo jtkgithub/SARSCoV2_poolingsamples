@@ -68,7 +68,7 @@ $$
 \hat{p}=1-(1-N_+/(s(k)N))^{1/k}\approx \frac{N_+}{s(k)kN}
 $$
 
-Ved å legge dette inn i simuleringen og anta en $s(k)=0.98^{1+\log(k)}$ får vi:
+Ved å legge dette inn i simuleringen og anta en bestemt form på sensitivitetskurven får vi:
 
 
 ```{r, fig.height=6}
@@ -85,8 +85,8 @@ sens1 <- function(k){
 }
 
 sens2 <- function(k){
-  # sens 0.99 at k=1, 0.50 at k=50
-  b1 <- (qnorm(0.5) - qnorm(0.99))/(50 - 1)
+  # sens 0.99 at k=1, 0.90 at k=32
+  b1 <- (qnorm(0.9) - qnorm(0.99))/(32 - 1)
   b0 <- qnorm(0.99) - b1
   sens <- pnorm(b0 + b1*k)
   return(sens)
@@ -101,13 +101,26 @@ simksseq <- function(p,k,s,npers,nsim=10^5){
   boxplot(phatmat, use.cols=T, xaxt="n", ylab="p-hat", xlab="k",
           main=paste("p =",p,", ", " Antall personer =",npers))
   axis(side=1, at=1:length(k), labels = k)
-  res <- rbind(k,s,round(colMeans(phatmat)-p,digits=5))
-  row.names(res) <- c("k", "antatt sensitivitet", "bias")
+  #
+  .lower <- apply(phatmat, 2, quantile, probs = 0.025, na.rm = T) # noen missing her!
+  .med <- apply(phatmat, 2, quantile, probs = 0.5, na.rm = T) # noen missing her!
+  .upper <- apply(phatmat, 2, quantile, probs = 0.975, na.rm = T) # noen missing her!
+  res <- rbind(k,s,round(colMeans(phatmat)-p,digits=5), .upper, .med, .lower) # kanskje median?
+  row.names(res) <- c("k", "assumed sensitivity", "bias", "upper", "median", "lower")
+  # res <- signif(res,2)
+  temp <- t(res)
+  matplot(temp[,"k"], temp[,c("lower", "median", "upper")], type = "o", lty = 1, lwd = 2, pch = 16, col = c("grey", "black", "lightgrey"), xlab = "Pool size (k)", ylab = "p-hat")
+  abline(a = p, b = 0, lwd = 2, col = "red")
   res
 }
 k=c(1,2,4,8,16,32,64)
-plot(k, sens(k), type = "o", pch = 16, lwd = 2, ylim = c(0,1))
+plot(k, sens(k), type = "o", pch = 16, lwd = 2, ylim = c(0,1), 
+     xlab = "Pool size (k)", ylab = "Sensitivity s(k)")
 par(mfrow=c(2,2))
+k=c(1,2,4,8,16,32,64)
+simksseq(p=0.0001,k=k,s=sens(k),npers=5000)
+simksseq(p=0.0005,k=k,s=sens(k),npers=5000)
+k=c(1,2,4,8,16,32,64)
 simksseq(p=0.001,k=k,s=sens(k),npers=2000)
 simksseq(p=0.005,k=k,s=sens(k),npers=2000)
 k=c(1,2,4,8,16,32)
