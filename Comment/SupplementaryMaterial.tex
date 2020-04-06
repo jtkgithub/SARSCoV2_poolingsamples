@@ -6,24 +6,32 @@
 \setlength{\parskip}{1ex}
 \usepackage{amsmath,amsfonts,amsthm}
 \DeclareMathOperator{\E}{E}
-%\textwidth=15cm
 \usepackage[super,comma]{natbib}
+\usepackage[hidelinks]{hyperref}
 \bibliographystyle{vancouver2}
 % \bibliographystyle{unsrtnat}
+%\usepackage[margin=1.0in]{geometry}
+\addtolength{\oddsidemargin}{-.75in}
+\addtolength{\evensidemargin}{-.75in}
+\addtolength{\textwidth}{1.5in}
+\addtolength{\topmargin}{-1.125in}
+\addtolength{\textheight}{2.125in}
+\renewcommand{\thefigure}{S\arabic{figure}}
 
 \makeatletter \renewcommand\@biblabel[1]{#1} \makeatother
 
 \begin{document}
 
 \begin{center}
-{\large \bf  Efficient Prevalence Estimation and Population Screening\\ for SARS-CoV-2\\\vspace*{0.5cm} Supplementary Material  }                           
+{\large \bf  Efficient Prevalence Estimation and Population Screening for SARS-CoV-2\\\vspace*{0.4cm} Supplementary Material  }                           
 \end{center}
 
-Kenneth Gundersen, Jan Terje Kvaløy, Håkon K. Gjessing and Iren Løhr
+\centerline {Kenneth Gundersen, Jan Terje Kvaløy, Håkon K. Gjessing and Iren  Høyland Löhr} 
 
-\vspace*{10mm}
+\vspace*{8mm}
 
-This supplementary file first provides the plots referenced in the main text. The calculations behind the plots are explained at the end of the document. The R code used to generate the plots can be found in the GitHub repository: xxxxxx    
+This supplementary file first provides the plots referenced in the main text. The calculations behind the plots are explained at the end of the document. The R code used to generate the plots can be found in the GitHub repository: 
+\url{https://github.com/jtkgithub/SARSCoV2_pooled_testing}.    
 
 \subsubsection*{Prevalence estimation}
 
@@ -31,7 +39,7 @@ Figure~\ref{S1} shows 90\% confidence intervals for the estimated prevalence obt
  
 \begin{figure}[!hbt]
 \begin{center}
-\includegraphics[width=0.95\linewidth]{prevalences_CI.pdf}
+\includegraphics[width=0.9\linewidth]{prevalences_CI.pdf}
 \end{center}
 \caption{Precision (90\% confidence intervals) of prevalence estimates based on pooled sampling, depending on prevalence, degree of pooling, and the total number of persons sampled (shown in right hand column of the plot). Note that the number of pools needed to be analyzed is the number of persons divided by the degree of pooling. The calculations assume a pool analysis sensitivity as shown in Figure~\ref{S3}. See text for further description.}
 \label{S1}
@@ -43,10 +51,10 @@ Figure~\ref{S2} shows how many persons can be included in the screening and the 
 
 \begin{figure}[!hbt]
 \begin{center}
-\includegraphics[width=0.48\linewidth]{ntested200.pdf}
-\includegraphics[width=0.48\linewidth]{ndetected200.pdf}\\
-\includegraphics[width=0.48\linewidth]{ntested1000.pdf}
-\includegraphics[width=0.48\linewidth]{ndetected1000.pdf}\\
+\includegraphics[width=0.45\linewidth]{ntested200.pdf}
+\includegraphics[width=0.45\linewidth]{ndetected200.pdf}\\
+\includegraphics[width=0.45\linewidth]{ntested1000.pdf}
+\includegraphics[width=0.45\linewidth]{ndetected1000.pdf}\\
 \end{center}
 \caption{The left plots depicts the number of persons that could be tested and the right plots the expected number of infected persons that would be identified with two different PCR budgets and three different test strategies: 1) No pooling; 2) Pool size 8 in the first testing and re-testing of all samples in the positive pools; 3) Pool size 32 in the first testing, re-testing in pools of 8 for the positive pools, re-testing all for the positive pools of size 8.}
 \label{S2}
@@ -54,6 +62,17 @@ Figure~\ref{S2} shows how many persons can be included in the screening and the 
 
 
 In the illustrations shown in Figure~\ref{S2}  we have assumed a sensitivity of 99\% for pools of size 8 and a sensitivity of 90\% for pools of size 32.  Similar plots for other scenarios can be generated using the R code in the GitHub repository. Note that both the numbers of persons included and the expected number of cases identified scale linearly with the number of available PCR analyses. For 1000 analyses the numbers are five times that of 200 analyses.
+
+\newpage
+
+\begin{figure}[!hbt]
+\begin{center}
+\includegraphics[width=0.65\linewidth]{sens_assumed.pdf}
+\end{center}
+\caption{Sensitivity of pooled samples, as assumed in the confidence interval calculations for Figure~\ref{S1}}
+\label{S3}
+\end{figure}
+
 
 \subsubsection*{Mathematical details}
 
@@ -73,13 +92,7 @@ where $N_{+}$  is the number of positive pools and $N$ is the number of pools.  
 \label{phat}
 \hat{p}=1-\left(1-\frac{\hat{\pi}(k)}{s(k)}\right)^{1/k}=1-\left(1-\frac{N_+}{s(k)N}\right)^{1/k}.
 \end{equation}
-\begin{figure}[!hbt]
-\begin{center}
-\includegraphics[width=0.85\linewidth]{sens_assumed.pdf}
-\end{center}
-\caption{Sensitivity of pooled samples, as assumed in the confidence interval calculations for Figure~\ref{S1}}
-\label{S3}
-\end{figure}
+
 Moreover, to obtain a confidence interval for $\hat p$ we propose to first calculate Wilson confidence intervals \cite{agresti_approximate_1998} for $\hat{\pi}(k)$ and map this to confidence limits for $\hat p$ by inserting the upper and lower limits in (\ref{phat}). Wilson confidence intervals are available from the {\tt binom.confint} function in the {\tt R} package {\tt binom} \cite{R,binom}. Additional statistical tools for computing prevalences from pooled samples can be found in the {\tt prevalence} package \cite{prevalence,speybroeck_estimating_2012}.
 
 \paragraph*{Screening strategies}
