@@ -7,9 +7,11 @@
 \usepackage{amsmath,amsfonts,amsthm}
 \DeclareMathOperator{\E}{E}
 %\textwidth=15cm
-\usepackage[round]{natbib}
-\bibliographystyle{abbrvnat}
+\usepackage[super,comma]{natbib}
+\bibliographystyle{vancouver2}
 % \bibliographystyle{unsrtnat}
+
+\makeatletter \renewcommand\@biblabel[1]{#1} \makeatother
 
 \begin{document}
 
@@ -78,7 +80,7 @@ where $N_{+}$  is the number of positive pools and $N$ is the number of pools.  
 \caption{Sensitivity of pooled samples, as assumed in the confidence interval calculations for Figure~\ref{S1}}
 \label{S3}
 \end{figure}
-Moreover, to obtain a confidence interval for $\hat p$ we propose to first calculate Wilson confidence intervals \citep{agresti_approximate_1998} for $\hat{\pi}(k)$ and map this to confidence limits for $\hat p$ by inserting the upper and lower limits in (\ref{phat}). Wilson confidence intervals are available from the {\tt binom.confint} function in the {\tt R} package {\tt binom} \citep{R,binom}. Additional statistical tools for computing prevalences from pooled samples can be found in the {\tt prevalence} package \citep{prevalence,speybroeck_estimating_2012}.
+Moreover, to obtain a confidence interval for $\hat p$ we propose to first calculate Wilson confidence intervals \cite{agresti_approximate_1998} for $\hat{\pi}(k)$ and map this to confidence limits for $\hat p$ by inserting the upper and lower limits in (\ref{phat}). Wilson confidence intervals are available from the {\tt binom.confint} function in the {\tt R} package {\tt binom} \cite{R,binom}. Additional statistical tools for computing prevalences from pooled samples can be found in the {\tt prevalence} package \cite{prevalence,speybroeck_estimating_2012}.
 
 \paragraph*{Screening strategies}
 For considerations around the screening strategies let first $N_{PCR}$ be the total number of PCR analyses which needs to be performed and let $N_{PCR,1}$ be the number of PCR analyses run in the first round. With no pooling $N_{PCR}=N_{PCR,1}$. For pooling stratgies $N_{PCR}$ will be a random variable since we do not know how many positive pools we will find. For the strategy with pooling of 8 samples we have
