@@ -1,0 +1,112 @@
+---
+title: "Noen enkle simuleringsbetrakninger"
+author: " "
+date: " "
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(kableExtra)
+```
+
+
+La $p$ være reell andel smittede, $k$ antall prøver slått sammen i en pool  og $\pi(k)$ sannsynligheten for at en pool av $k$ tester gir positivt utslag. La videre $s(k)$ være sensitivitet til testen ved pool av $k$ tester. Da blir
+\begin{equation}
+\label{pip}
+\pi(k)=s(k)(1-(1-p)^k)\approx s(k)kp
+\end{equation}
+Vi kan estimere $\pi(k)$ ved $N_{+}/N$ der $N_{+}$ er antall prøvepooler som er positive og $N$ er antall prøvepooler. Totalt antall personer man tar prøver fra blir da $n_{pers}=kN$. Fra (\ref{pip}) får vi at 
+$$
+\hat{p}=1-(1-N_+/(s(k)N))^{1/k}\approx \frac{N_+}{s(k)kN}
+$$
+Tilnærmingen er god for små $p$.
+
+
+Under er fordelingen til $\hat p$ basert på 100 000 simuleringer vist for ulike $p$ og ulike valg av $k$ og $s(k)$.
+
+
+```{r, fig.height=3, echo=FALSE}
+# Simulate the distribution of p-hat for given p, k, s, N
+simps <- function(p,k,s,N,nsim=10^5){
+  Npos <- rbinom(nsim,N,s*(1-(1-p)^k))
+  phat <- 1-(1-Npos/(s*N))^(1/k)
+  phat
+}
+sens1 <- function(k){
+  sens <- 0.98^(1+2*log(k))
+  return(sens)
+}
+sens2 <- function(k){
+  # sens 0.99 at k=1, 0.50 at k=50
+  b1 <- (qnorm(0.5) - qnorm(0.99))/(50 - 1)
+  b0 <- qnorm(0.99) - b1
+  sens <- pnorm(b0 + b1*k)
+  return(sens)
+}
+k=c(1,4,8,16,32,64)
+par(mfrow=c(1,2))
+plot(k, sens1(k), type = "o", pch = 16, lwd = 2, ylim = c(0,1), main="Sensitivitetskurve 1")
+plot(k, sens2(k), type = "o", pch = 16, lwd = 2, ylim = c(0,1), main="Sensitivitetskurve 2")
+
+simksseq <- function(p,k,s,npers,nsim=10^5, showplot=TRUE){
+  if((length(k)!=length(npers)) || (length(k)!=length(s)))
+    stop("Length of k, s and npers should match")
+  phatmat <- matrix(nrow=nsim,ncol=length(k))
+  for(i in 1:length(k))
+    phatmat[,i] <- simps(p,k[i],s[i],round(npers[i]/k[i]),nsim)
+  if(showplot){
+    boxplot(phatmat, use.cols=T, xaxt="n", ylab="p-hat", xlab="k",
+            main=paste("p =",p))
+    axis(side=1, at=1:length(k), labels = k)
+  }
+  N <- round(npers/k)
+  pseq <- rep(p, length(k))
+  res <- cbind.data.frame(pseq,npers,N,k,s,apply(phatmat,2,sd),apply(phatmat,2,quantile,probs=0.95, na.rm=T),colMeans(phatmat)-p)
+  colnames(res) <- c("Prevalens","Ant. personer", "Ant. tester", "pool size", "sensitivitet","SE(p)","q95(p)", "bias")
+  kable(res, digits=c(4,0,0,0,2,5,5,5))
+}
+
+```
+
+### Med sensitivtetskurve 1
+
+```{r, fig.height=6, echo=FALSE}
+par(mfrow=c(2,2))
+simksseq(p=0.01,k=k,s=sens1(k),npers=rep(5000,length(k)))
+simksseq(p=0.005,k=k,s=sens1(k),npers=rep(5000,length(k)))
+k=c(1,4,8,16,32)
+simksseq(p=0.001,k=k,s=sens1(k),npers=rep(5000,length(k)))
+simksseq(p=0.0005,k=k,s=sens1(k),npers=rep(5000,length(k)))
+```
+
+
+
+### Med sensitivtetskurve 2
+
+```{r, fig.height=6, echo=FALSE}
+k=c(1,4,8,16,32, 64)
+par(mfrow=c(2,2))
+simksseq(p=0.01,k=k,s=sens2(k),npers=rep(5000,length(k)))
+simksseq(p=0.005,k=k,s=sens2(k),npers=rep(5000,length(k)))
+k=c(1,4,8,16,32)
+simksseq(p=0.001,k=k,s=sens2(k),npers=rep(5000,length(k)))
+simksseq(p=0.0005,k=k,s=sens2(k),npers=rep(5000,length(k)))
+```
+
+\newpage
+
+### Noen vurderinger der antall PCR-prøver er konstant, men pool size og antall testede personer varierer. 
+
+
+
+
+```{r, fig.height=5.5, echo=FALSE}
+k=c(1,4,8,16,32)
+simksseq(p=0.001,k=k,s=sens1(k),npers=200*k, showplot=F)
+simksseq(p=0.0005,k=k,s=sens1(k),npers=200*k, showplot=F)
+simksseq(p=0.001,k=k,s=sens2(k),npers=200*k, showplot=F)
+simksseq(p=0.0005,k=k,s=sens2(k),npers=200*k, showplot=F)
+```
+
+
